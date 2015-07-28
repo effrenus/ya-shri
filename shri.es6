@@ -4,8 +4,6 @@
  * @param {function} callback
  */
 
-'use strict';
-
 function getData(url, callback) {
 	var RESPONSES = {
 		'/countries': [{
@@ -45,7 +43,7 @@ function getData(url, callback) {
 		}, {
 			name: 'Zanzibar',
 			country: 'Tanzania'
-		}],
+		}, ],
 		'/populations': [{
 			count: 138000,
 			name: 'Bamenda'
@@ -67,7 +65,7 @@ function getData(url, callback) {
 		}]
 	};
 
-	setTimeout(function () {
+	setTimeout(function() {
 		var result = RESPONSES[url];
 		if (!result) {
 			return callback('Unknown url');
@@ -83,18 +81,18 @@ function getData(url, callback) {
 var requests = ['/countries', '/cities', '/populations'];
 var responses = {};
 
-var _loop = function () {
-	var request = requests[i];
-
-	callback = function callback(error, result) {
+for (i = 0; i < 3; i++) {
+	let request = requests[i];
+	var callback = function(error, result) {
 		responses[request] = result;
 		var l = [];
-		for (K in responses) l.push(K);
+		for (K in responses)
+			l.push(K);
 
 		if (l.length == 3) {
 			var c = [],
-			    cc = [],
-			    p = 0;
+				cc = [],
+				p = 0;
 			for (i = 0; i < responses['/countries'].length; i++) {
 				if (responses['/countries'][i].continent === 'Africa') {
 					c.push(responses['/countries'][i].name);
@@ -122,11 +120,4 @@ var _loop = function () {
 	};
 
 	getData(request, callback);
-};
-
-for (i = 0; i < 3; i++) {
-	var callback;
-
-	_loop();
 }
-
