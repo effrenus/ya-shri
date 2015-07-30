@@ -43,7 +43,7 @@ function getData(url, callback) {
 		}, {
 			name: 'Zanzibar',
 			country: 'Tanzania'
-		}, ],
+		}],
 		'/populations': [{
 			count: 138000,
 			name: 'Bamenda'
@@ -78,11 +78,15 @@ function getData(url, callback) {
 /**
  * Ваши изменения ниже
  */
-var requests = ['/countries', '/cities', '/populations'];
 
-Promise
-	.all(requests.map(function(request) {
-		var promise = new Promise(function(resolve, reject) {
+/**
+ * Fetch async data
+ * @return promise
+ */
+function fetchPopulationData(requests) {
+	return Promise
+		.all(requests.map(function(request) {
+			var promise = new Promise(function(resolve, reject) {
 			getData(request, function(error, result) {
 				if(error) {
 					reject(error);
@@ -94,42 +98,78 @@ Promise
 		return promise;
 	}))
 	.then(function(result) {
-		var responses = {};
+		var data = {};
 		result.forEach(function(item) {
-			responses[item[0]] = item[1];
+			data[item[0]] = item[1];
 		});
 
-		return responses;
-	})
-	.then(proccessPopulationData)
-	.catch(function(error) {
-		console.log(error);
+		return data;
 	});
-
-/**
- * Print population data for continent
- * @param  {object} responses World statistic
- */
-function proccessPopulationData(responses) {
-	var totalPopulation = 0;
-	var CONTINENT = 'Africa';
-
-	var countries = responses['/countries'].filter(function(country) {
-		return country.continent === CONTINENT;
-	});
-
-	var cities = responses['/cities'].filter(function(city) {
-		return countries.some(function(country) {
-			return city.country === country.name;
-		});
-	}).map(function(city) { return city.name; });
-
-	totalPopulation = responses['/populations'].reduce(function(value, city) {
-		if(cities.indexOf(city.name) > -1) {
-			return value + city.count;
-		}
-		return value;
-	}, totalPopulation);
-
-  console.log('Total population in African cities: ' + totalPopulation);
 }
+
+(function() {
+	var requests = ['/countries', '/cities', '/populations'];
+	var responses;
+	var getStatBtn;
+
+	/**
+	 * Print population data for continent
+	 * @param  {object} responses World statistic
+	 * @param  {string} continent
+	 */
+	function processPopulationData(responses, CONTINENT) {
+		var totalPopulation = 0;
+
+		var countries = responses['/countries'].filter(function(country) {
+			return country.continent === CONTINENT;
+		});
+
+		var cities = responses['/cities'].filter(function(city) {
+			return countries.some(function(country) {
+				return city.country === country.name;
+			});
+		}).map(function(city) { return city.name; });
+
+		totalPopulation = responses['/populations'].reduce(function(value, city) {
+			if(cities.indexOf(city.name) > -1) {
+				return value + city.count;
+			}
+			return value;
+		}, totalPopulation);
+
+		console.log('Total population in ' + CONTINENT + ' cities: ' + totalPopulation);
+	}
+
+	/**
+	 * Prompt continent and process data
+	 * @return void
+	 */
+	function getContinentPopulation() {
+		var CONTINENT = window.prompt('Type continent:');
+		if(!CONTINENT) {
+			return;
+		}
+		if(!responses) {
+			getStatBtn.setAttribute('disabled', true);
+
+			fetchPopulationData(requests)
+				.then(function(data) {
+					// Cache data
+					responses = data;
+					processPopulationData(responses, CONTINENT);
+					getStatBtn.removeAttribute('disabled');
+				})
+				.catch(function(err) {
+					console.log(err);
+				});
+		}
+		else {
+			processPopulationData(responses, CONTINENT);
+		}
+	}
+
+	getStatBtn = document.createElement('button');
+	getStatBtn.innerText = 'Get continent population';
+	getStatBtn.addEventListener('click', getContinentPopulation, false);
+	document.body.appendChild(getStatBtn);
+})();
