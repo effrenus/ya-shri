@@ -107,6 +107,14 @@ function fetchPopulationData(requests) {
 	});
 }
 
+function log(text, context) {
+	var context = context || 'info';
+	var elm = document.createElement('p');
+	elm.className = 'bg-' + context;
+	elm.innerText = text;
+	document.body.appendChild(elm);
+}
+
 (function() {
 	var requests = ['/countries', '/cities', '/populations'];
 	var responses;
@@ -137,7 +145,7 @@ function fetchPopulationData(requests) {
 			return value;
 		}, totalPopulation);
 
-		console.log('Total population in ' + CONTINENT + ' cities: ' + totalPopulation);
+		log('Total population in ' + CONTINENT + ' cities: ' + totalPopulation);
 	}
 
 	/**
@@ -161,6 +169,7 @@ function fetchPopulationData(requests) {
 				})
 				.catch(function(err) {
 					console.log(err);
+					getStatBtn.removeAttribute('disabled');
 				});
 		}
 		else {
@@ -169,6 +178,7 @@ function fetchPopulationData(requests) {
 	}
 
 	getStatBtn = document.createElement('button');
+	getStatBtn.className = 'btn btn-primary';
 	getStatBtn.innerText = 'Get continent population';
 	getStatBtn.addEventListener('click', getContinentPopulation, false);
 	document.body.appendChild(getStatBtn);
